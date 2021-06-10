@@ -62,8 +62,6 @@ void setupButton() {
 void setupStorageManager() {
   storageManager = new StorageManager();
   int brightness = atoi(storageManager->getValue("brightness"));
-  Serial.println("main");
-  Serial.println(brightness);
   if (brightness != 0) {
     tape->setupBrightness(brightness);
   }

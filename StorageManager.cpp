@@ -9,11 +9,15 @@ StorageManager::StorageManager() {
 }
 
 void StorageManager::save(char* key, char* value) {
-  std::map<char*, char*>::iterator it = _savedValues.find(key); 
-  if (it != _savedValues.end()) {
-    it->second = value;
-  } else {
-    Serial.println("insert");
+  bool isExist = false;
+  for (const auto& keyValue : _savedValues) {
+    if (strcmp(keyValue.first, key) == 0) {
+      _savedValues[keyValue.first] = value;
+      isExist = true;
+    }
+  }
+  
+  if (!isExist) {
     _savedValues.insert(std::pair<char*,char*>(key, value));
   }
 
@@ -39,14 +43,8 @@ void StorageManager::syncValues() {
 }
 
 char* StorageManager::getValue(char* key) {
-  Serial.println("getValue");
-  Serial.println(key);
-
   for (const auto& keyValue : _savedValues) {
-    Serial.println(keyValue.first);
-    Serial.println(keyValue.second);
-    
-    if (keyValue.first == key) {
+    if (strcmp(keyValue.first, key) == 0) {
       return keyValue.second;
     }
   }
