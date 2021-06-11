@@ -8,12 +8,20 @@ StorageManager::StorageManager() {
   loadValues();
 }
 
+std::map<char*, char*> StorageManager::getMap() {
+  return _savedValues;
+}
+
 void StorageManager::save(char* key, char* value) {
   bool isExist = false;
   for (const auto& keyValue : _savedValues) {
+    Serial.println(keyValue.first);
+    Serial.println(key);
+    Serial.println(strcmp(keyValue.first, key));
     if (strcmp(keyValue.first, key) == 0) {
       _savedValues[keyValue.first] = value;
       isExist = true;
+      break;
     }
   }
   
@@ -22,7 +30,6 @@ void StorageManager::save(char* key, char* value) {
   }
 
   syncValues();
-  loadValues();
 }
 
 void StorageManager::syncValues() {
@@ -35,8 +42,8 @@ void StorageManager::syncValues() {
   Serial.println("sync");
   Serial.println(str.c_str());
 
-  for (int i = 0; i < str.length(); i++) {
-    EEPROM.write(i, str[i]);
+  for (int i = 0; i < 512; i++) {
+    EEPROM.write(i, i > str.length() ? ' ' : str[i]);
   }
   
   EEPROM.commit();
@@ -57,7 +64,8 @@ void StorageManager::loadValues() {
   for (int i = 0; i < 512; i++) {
     values += EEPROM.read(i);
   }
-  
+
+  Serial.println(values.c_str());
   std::string foundKey = "";
   std::string tempValue = "";
   for (int i = 0; i < values.length(); i++) {

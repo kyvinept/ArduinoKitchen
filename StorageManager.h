@@ -15,6 +15,7 @@ class StorageManager {
     StorageManager();
     void save(char* key, char* value);
     char* getValue(char* key);
+    std::map<char*, char*> getMap();
 };
 
 #endif /* STORAGEMANAGER_H */

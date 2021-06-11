@@ -22,12 +22,12 @@ void setup() {
 
   connectToWifi();
 
+  setupStorageManager();
+  
   setupEndpoints();
   wifiServer->startServer();
 
   setupButton();
-
-  setupStorageManager();
 }
 
 void loop() {
@@ -75,12 +75,18 @@ void setupEndpoints() {
   endpointModels[0].callback = [](StaticJsonDocument<200> json) {
     Serial.println("CALLBACK ON");
     tape->show();
+
+    std::map<char*, char*> map = {};
+    return map;
   };
   endpointModels[1].requestName = "/off";
   endpointModels[1].requestType = HTTP_GET;
   endpointModels[1].callback = [](StaticJsonDocument<200> json) {    
     Serial.println("CALLBACK OFF");
     tape->hide();
+
+    std::map<char*, char*> map = {};
+    return map;
   };
   endpointModels[2].requestName = "/settings";
   endpointModels[2].requestType = HTTP_POST;
@@ -94,13 +100,23 @@ void setupEndpoints() {
         numbers[i] = values[i];
     }
     tape->settings(std::string(mode) == "full" ? Tape::ShowingModeType::full : Tape::ShowingModeType::part, numbers, size);
+    storageManager->save("mode", strdup(mode));
+
+    std::map<char*, char*> map = {};
+    return map;
   };
   endpointModels[3].requestName = "/color";
   endpointModels[3].requestType = HTTP_POST;
   endpointModels[3].callback = [](StaticJsonDocument<200> json) {    
     Serial.print("CALLBACK COLOR");
-    int color = json["value"];
+    String stringValue = json["value"];
+    int color = strtol(stringValue.c_str(),NULL,0);
     tape->setupColor(color);
+    char* colorCharValue = strdup(stringValue.c_str());
+    storageManager->save("color", colorCharValue);
+
+    std::map<char*, char*> map = {};
+    return map;
   };
   endpointModels[4].requestName = "/brightness";
   endpointModels[4].requestType = HTTP_POST;
@@ -110,11 +126,15 @@ void setupEndpoints() {
     tape->setupBrightness(brightness);
     char* brightnessCharValue = strdup(String(brightness).c_str());
     storageManager->save("brightness", brightnessCharValue);
+
+    std::map<char*, char*> map = {};
+    return map;
   };
   endpointModels[5].requestName = "/";
   endpointModels[5].requestType = HTTP_GET;
   endpointModels[5].callback = [](StaticJsonDocument<200> json) {    
     Serial.println("CALLBACK HOME LINK");
+    return storageManager->getMap();
   };
   
   wifiServer->setupEndpoint(endpointModels, endpointModelsLength);
