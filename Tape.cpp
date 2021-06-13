@@ -81,3 +81,9 @@ void Tape::settings(Tape::ShowingModeType showingMode, int* values, int size) {
   _tapeSkipModels = tapeSkipModels;
   _tapeSkipModelsSize = size / 2;
 }
+
+void Tape::settings(ShowingModeType showingMode) {
+  _showingModelType = showingMode;
+  _tapeSkipModels = new TapeSkipModel[0];
+  _tapeSkipModelsSize = 0;
+}

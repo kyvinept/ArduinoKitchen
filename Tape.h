@@ -24,6 +24,7 @@ class Tape {
     void prepare();
     bool getIsShown();
     void settings(ShowingModeType showingMode, int* values, int size);
+    void settings(ShowingModeType showingMode);
 
    private:
     Adafruit_NeoPixel _strip;

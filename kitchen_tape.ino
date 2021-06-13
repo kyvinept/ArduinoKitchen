@@ -65,6 +65,46 @@ void setupStorageManager() {
   if (brightness != 0) {
     tape->setupBrightness(brightness);
   }
+  
+  char* stringColor = storageManager->getValue("color");
+  if (stringColor != "") {
+    int color = strtol(stringColor,NULL,0);
+    tape->setupColor(color);
+  }
+  
+  String mode = storageManager->getValue("mode");
+  String partShowingTape = storageManager->getValue("partShowingTape");
+  if (mode != "") {
+    Tape::ShowingModeType showingModeType = mode == "full" ? Tape::ShowingModeType::full : Tape::ShowingModeType::part;
+
+    switch(showingModeType) {
+      case Tape::ShowingModeType::full:
+        tape->settings(showingModeType);
+        break;
+      case Tape::ShowingModeType::part:
+        if (partShowingTape.length()) {
+          int numbersSize = 1;
+          for (int i = 0; i < partShowingTape.length(); i++) {
+            if (partShowingTape[i] == ',') {
+              numbersSize += 1;
+            }
+          }
+    
+          int index = 0;
+          int* numbers = new int[numbersSize];
+          char separator[] = ",";
+          char *token;
+          token = strtok(strdup(partShowingTape.c_str()), separator);
+          while(token != NULL) 
+          {
+            numbers[index] = atoi(token);
+            token = strtok(NULL, separator);
+          }
+          tape->settings(showingModeType, numbers, numbersSize);
+        }
+        break;
+    }
+  }
 }
 
 void setupEndpoints() {
@@ -96,11 +136,15 @@ void setupEndpoints() {
     JsonArray values = json["values"];
     int size = values.size();
     int* numbers = new int[size];
+    String charNumbersToSave = "";
     for (int i = 0; i < size; ++i) {
         numbers[i] = values[i];
+        charNumbersToSave += String(numbers[i]) + (i == size - 1 ? "" : ",");
     }
     tape->settings(std::string(mode) == "full" ? Tape::ShowingModeType::full : Tape::ShowingModeType::part, numbers, size);
     storageManager->save("mode", strdup(mode));
+    Serial.println(charNumbersToSave.c_str());
+    storageManager->save("partShowingTape", strdup(charNumbersToSave.c_str()));
 
     std::map<char*, char*> map = {};
     return map;
