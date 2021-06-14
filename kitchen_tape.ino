@@ -2,6 +2,7 @@
 #include "Button.h"
 #include "WifiServer.h"
 #include "StorageManager.h"
+#include "UniversalMapper.h"
 
 #include <stdlib.h>
 
@@ -13,10 +14,13 @@ Tape *tape;
 Button *button;
 WifiServer *wifiServer;
 StorageManager *storageManager;
+UniversalMapper *mapper;
 
 void setup() {
   tape = new Tape(NUM_LEDS, TAPE_PIN);
   tape->prepare();
+
+  mapper = new UniversalMapper();
 
   Serial.begin(115000);
 
@@ -61,15 +65,14 @@ void setupButton() {
 
 void setupStorageManager() {
   storageManager = new StorageManager();
-  int brightness = atoi(storageManager->getValue("brightness"));
+  int brightness = mapper->charWithStarToInt(storageManager->getValue("brightness"));
   if (brightness != 0) {
     tape->setupBrightness(brightness);
   }
   
   char* stringColor = storageManager->getValue("color");
   if (stringColor != "") {
-    int color = strtol(stringColor,NULL,0);
-    tape->setupColor(color);
+    tape->setupColor(mapper->hexCharToInt(stringColor));
   }
   
   String mode = storageManager->getValue("mode");
@@ -83,24 +86,8 @@ void setupStorageManager() {
         break;
       case Tape::ShowingModeType::part:
         if (partShowingTape.length()) {
-          int numbersSize = 1;
-          for (int i = 0; i < partShowingTape.length(); i++) {
-            if (partShowingTape[i] == ',') {
-              numbersSize += 1;
-            }
-          }
-    
-          int index = 0;
-          int* numbers = new int[numbersSize];
-          char separator[] = ",";
-          char *token;
-          token = strtok(strdup(partShowingTape.c_str()), separator);
-          while(token != NULL) 
-          {
-            numbers[index] = atoi(token);
-            token = strtok(NULL, separator);
-          }
-          tape->settings(showingModeType, numbers, numbersSize);
+          UniversalMapper::IntArray intArray = mapper->stringToIntArraySplittedByComa(partShowingTape);
+          tape->settings(showingModeType, intArray.numbers, intArray.size);
         }
         break;
     }
@@ -116,8 +103,7 @@ void setupEndpoints() {
     Serial.println("CALLBACK ON");
     tape->show();
 
-    std::map<char*, char*> map = {};
-    return map;
+    return UniversalMapper::getEmptyMap();
   };
   endpointModels[1].requestName = "/off";
   endpointModels[1].requestType = HTTP_GET;
@@ -125,8 +111,7 @@ void setupEndpoints() {
     Serial.println("CALLBACK OFF");
     tape->hide();
 
-    std::map<char*, char*> map = {};
-    return map;
+    return UniversalMapper::getEmptyMap();
   };
   endpointModels[2].requestName = "/settings";
   endpointModels[2].requestType = HTTP_POST;
@@ -134,20 +119,12 @@ void setupEndpoints() {
     Serial.print("CALLBACK SETTINGS");
     const char* mode = json["mode"];
     JsonArray values = json["values"];
-    int size = values.size();
-    int* numbers = new int[size];
-    String charNumbersToSave = "";
-    for (int i = 0; i < size; ++i) {
-        numbers[i] = values[i];
-        charNumbersToSave += String(numbers[i]) + (i == size - 1 ? "" : ",");
-    }
-    tape->settings(std::string(mode) == "full" ? Tape::ShowingModeType::full : Tape::ShowingModeType::part, numbers, size);
-    storageManager->save("mode", strdup(mode));
-    Serial.println(charNumbersToSave.c_str());
-    storageManager->save("partShowingTape", strdup(charNumbersToSave.c_str()));
+    UniversalMapper::IntArray intArray = mapper->jsonArrayToIntArray(values);
+    tape->settings(std::string(mode) == "full" ? Tape::ShowingModeType::full : Tape::ShowingModeType::part, intArray.numbers, intArray.size);
+    storageManager->save("mode", mapper->constCharToChar(mode));
+    storageManager->save("partShowingTape", mapper->jsonArrayToChar(values));
 
-    std::map<char*, char*> map = {};
-    return map;
+    return UniversalMapper::getEmptyMap();
   };
   endpointModels[3].requestName = "/color";
   endpointModels[3].requestType = HTTP_POST;
@@ -159,8 +136,7 @@ void setupEndpoints() {
     char* colorCharValue = strdup(stringValue.c_str());
     storageManager->save("color", colorCharValue);
 
-    std::map<char*, char*> map = {};
-    return map;
+    return UniversalMapper::getEmptyMap();
   };
   endpointModels[4].requestName = "/brightness";
   endpointModels[4].requestType = HTTP_POST;
@@ -168,11 +144,9 @@ void setupEndpoints() {
     Serial.print("CALLBACK BRIGHTNESS ");
     int brightness = json["value"];
     tape->setupBrightness(brightness);
-    char* brightnessCharValue = strdup(String(brightness).c_str());
-    storageManager->save("brightness", brightnessCharValue);
+    storageManager->save("brightness", mapper->intToChar(brightness));
 
-    std::map<char*, char*> map = {};
-    return map;
+    return UniversalMapper::getEmptyMap();
   };
   endpointModels[5].requestName = "/";
   endpointModels[5].requestType = HTTP_GET;
