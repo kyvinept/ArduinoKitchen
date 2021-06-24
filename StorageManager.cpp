@@ -12,6 +12,12 @@ std::map<char*, char*> StorageManager::getMap() {
   return _savedValues;
 }
 
+void StorageManager::clear() {
+  std::map<char*, char*> emptyMap = {};
+  _savedValues = emptyMap;
+  syncValues();
+}
+
 void StorageManager::save(char* key, char* value) {
   bool isExist = false;
   for (const auto& keyValue : _savedValues) {

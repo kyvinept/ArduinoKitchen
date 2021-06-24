@@ -14,6 +14,7 @@ class StorageManager {
   public:
     StorageManager();
     void save(char* key, char* value);
+    void clear();
     char* getValue(char* key);
     std::map<char*, char*> getMap();
 };

@@ -10,7 +10,17 @@ void Button::readSignal() {
   int buttonSignal = digitalRead(_pin);
 
   if (buttonSignal == 0) {
-    onButtonPressed();
+    if (_currentSignal == buttonSignal && !isLongPressedCallbackCalled) {
+      onLongButtonPressed();
+      isLongPressedCallbackCalled = true;
+    } else {
+      onButtonPressed();
+    }
+
+    _currentSignal = buttonSignal;
     delay(2000);
+  } else {
+    _currentSignal = -1;
+    isLongPressedCallbackCalled = false;
   }
 }

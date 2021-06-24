@@ -8,7 +8,7 @@
 
 #define TAPE_PIN D2
 #define BUTTON_PIN D4
-#define NUM_LEDS 204
+#define NUM_LEDS 100
 
 Tape *tape;
 Button *button;
@@ -19,18 +19,12 @@ UniversalMapper *mapper;
 void setup() {
   tape = new Tape(NUM_LEDS, TAPE_PIN);
   tape->prepare();
-
   mapper = new UniversalMapper();
-
   Serial.begin(115000);
-
   connectToWifi();
-
   setupStorageManager();
-  
   setupEndpoints();
   wifiServer->startServer();
-
   setupButton();
 }
 
@@ -60,6 +54,14 @@ void setupButton() {
     } else {
       tape->show();
     }
+  };
+  
+  button->onLongButtonPressed = []() {
+    Serial.println("onLongButtonPressed");
+    if (tape->getIsShown()) {
+      tape->hide();
+    }
+    storageManager->clear();
   };
 }
 

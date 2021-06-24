@@ -21,49 +21,56 @@ void Tape::prepare() {
 
 void Tape::setupBrightness(int value) {
   _strip.setBrightness(value);
-  _strip.show();
+
+  if (isShown) {
+    show();
+  }
 }
 
 void Tape::setupColor(int value) {
   _color = value;
-  _strip.show();
+
+  if (isShown) {
+    show();
+  }
 }
 
 void Tape::show() {
   isShown = true;
 
-  if (_showingModelType == Tape::ShowingModeType::part) {
-    for (int j = 0; j < _ledsCount; j++) {
-      bool isCovered = false;
-      for (int i = 0; i < _tapeSkipModelsSize; i++) {
-        if (j >= _tapeSkipModels[i].from && j <= _tapeSkipModels[i].to) {
-          isCovered = true;
+  switch (_showingModelType) {
+    case Tape::ShowingModeType::part:
+      for (int j = 0; j < _ledsCount; j++) {
+        bool isCovered = false;
+        for (int i = 0; i < _tapeSkipModelsSize; i++) {
+          if (j >= _tapeSkipModels[i].from && j <= _tapeSkipModels[i].to) {
+            isCovered = true;
+          }
+        }
+  
+        if (isCovered) {
+          _strip.setPixelColor(j, _color);
+        } else {
+          _strip.setPixelColor(j, BLACK_COLOR);
         }
       }
+      _strip.show();
+      break;
 
-      if (isCovered) {
-        _strip.setPixelColor(j, _color);
-      } else {
-        _strip.setPixelColor(j, BLACK_COLOR);
+    case Tape::ShowingModeType::full:
+      for (int i = 0; i < _ledsCount; i++) {
+        _strip.setPixelColor(i, _color);
+        _strip.show();
+        delay(30);
       }
-    }
-  } else {
-    for (int i = 0; i < _ledsCount; i++) {
-      _strip.setPixelColor(i, _color);
-    } 
+      break;
   }
-
-  _strip.show();
 }
 
 void Tape::hide() {
   isShown = false;
   _strip.clear();
   _strip.show();
-//  for (int i = 0; i < _ledsCount; i++) {
-//    _strip.setPixelColor(i, BLACK_COLOR);
-//  } 
-//  _strip.show();
 }
 
 void Tape::settings(Tape::ShowingModeType showingMode, int* values, int size) {
