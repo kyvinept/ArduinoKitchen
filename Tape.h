@@ -3,8 +3,8 @@
 #ifndef TAPE_H
 #define TAPE_H
 
-const int DEFAULT_BRIGHTNESS = 20;
-const int DEFAULT_COLOR = 0x0000ff;
+const int DEFAULT_BRIGHTNESS = 5;
+const int DEFAULT_COLOR = 0xffffff;
 const int BLACK_COLOR = 0x000000;
 
 class Tape {

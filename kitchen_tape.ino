@@ -8,7 +8,7 @@
 
 #define TAPE_PIN D2
 #define BUTTON_PIN D4
-#define NUM_LEDS 100
+#define NUM_LEDS 100//204
 
 Tape *tape;
 Button *button;

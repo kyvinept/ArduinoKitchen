@@ -54,17 +54,16 @@ void Tape::show() {
           _strip.setPixelColor(j, BLACK_COLOR);
         }
       }
-      _strip.show();
       break;
 
     case Tape::ShowingModeType::full:
       for (int i = 0; i < _ledsCount; i++) {
         _strip.setPixelColor(i, _color);
-        _strip.show();
-        delay(30);
       }
       break;
   }
+
+  _strip.show();
 }
 
 void Tape::hide() {
